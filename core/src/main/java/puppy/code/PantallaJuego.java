@@ -17,9 +17,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class PantallaJuego implements Screen {
 
 	private SpaceNavigation game;
-	private OrthographicCamera camera;
+	public OrthographicCamera camera;
 	private SpriteBatch batch;
 	private Sound explosionSound;
+    private Sound roundWin;
 	private Music gameMusic = Gdx.audio.newMusic(Gdx.files.internal("piano-loops.wav"));;
 	private int score;
 	private int ronda;
@@ -46,6 +47,8 @@ public class PantallaJuego implements Screen {
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 640);
 		//inicializar assets; musica de fondo y efectos de sonido
+        roundWin = Gdx.audio.newSound(Gdx.files.internal("roundwin.mp3"));
+        roundWin.setVolume(1,0.5f);
 		explosionSound = Gdx.audio.newSound(Gdx.files.internal("explosion.ogg"));
 		explosionSound.setVolume(1,0.5f);
         gameMusic.setLooping(true);
@@ -64,21 +67,19 @@ public class PantallaJuego implements Screen {
         //crear asteroides
         Random r = new Random();
 	    for (int i = 0; i < cantAsteroides; i++) {
-	        Ball2 bb = new Ball2(r.nextInt((int)Gdx.graphics.getWidth()),
-	  	            50+r.nextInt((int)Gdx.graphics.getHeight()-50),
+	        Ball2 bb = new Ball2( r.nextInt(Gdx.graphics.getWidth()-320),r.nextInt(Gdx.graphics.getHeight()-240),
 	  	            20+r.nextInt(10), velXAsteroides+r.nextInt(4), velYAsteroides+r.nextInt(4),
 	  	            new Texture(Gdx.files.internal("aGreyMedium4.png")));
+           // bb.setScale(r.nextInt(1));
 	  	    balls1.add(bb);
 	  	    balls2.add(bb);
 	  	}
 	}
-
 	public void dibujaEncabezado() {
 		CharSequence str = "Vidas: "+nave.getVidas()+" Ronda: "+ronda;
-		//game.getFont().getData().setScale(2f);
 		game.getFont().draw(batch, str, 10, 30);
 		game.getFont().draw(batch, "Score:"+this.score, Gdx.graphics.getWidth()-150, 30);
-		game.getFont().draw(batch, "HighScore:"+game.getHighScore(), (float) Gdx.graphics.getWidth() /2-100, 30);
+		game.getFont().draw(batch, "HighScore:"+game.getHighScore(), (float) Gdx.graphics.getWidth() /2-190, 30);
 	}
 	@Override
 	public void render(float delta) {
@@ -92,7 +93,6 @@ public class PantallaJuego implements Screen {
 		            b.update(delta);
 		            for (int j = 0; j < balls1.size(); j++) {
 		              if (b.checkCollision(balls1.get(j))) {
-		            	 explosionSound.play();
 		            	 balls1.remove(j);
 		            	 balls2.remove(j);
 		            	 j--;
@@ -101,7 +101,6 @@ public class PantallaJuego implements Screen {
 		  	        }
 
                     if (b.isDestroyed()||b.getSprite().getX()>Gdx.graphics.getWidth() || b.getSprite().getX()<0 || b.getSprite().getY()>Gdx.graphics.getHeight() || b.getSprite().getY()<0) {
-                        b.setAnimation(b.getSprite().getX(),b.getSprite().getY());
                         System.out.println(b.getSprite().getX() +"  "+ b.getSprite().getY());
                         balas.remove(b);
                         explosionSound.play();
@@ -142,7 +141,7 @@ public class PantallaJuego implements Screen {
               }
   	        }
           if(Gdx.input.isKeyJustPressed(46)){
-            Screen ss = new PantallaJuego(game,1,100,0,1,1,10);
+            Screen ss = new PantallaMenu(game);
             ss.resize(1200, 800);
             game.setScreen(ss);
             dispose();
@@ -165,10 +164,11 @@ public class PantallaJuego implements Screen {
   		  }
 	      batch.end();
 	      //nivel completado
-	      if (balls1.size()==0) {
+	      if (balls1.isEmpty()) {
 			Screen ss = new PantallaJuego(game,ronda+1, nave.getVidas(), score,
-					velXAsteroides+1, velYAsteroides+1, cantAsteroides+2);
+					velXAsteroides+1, velYAsteroides+1, cantAsteroides+1);
 			ss.resize(1200, 800);
+            roundWin.play();
 			game.setScreen(ss);
 			dispose();
 		  }
@@ -250,6 +250,7 @@ public class PantallaJuego implements Screen {
         for (Ball2 ball : balls2) {
             ball.resume();
         }
+        nave.resume();
         // Reanudar otras lógicas del juego según sea necesario
         // ...
 
@@ -266,7 +267,7 @@ public class PantallaJuego implements Screen {
 	public void dispose() {
 		// TODO Auto-generated method stub
 		this.explosionSound.dispose();
-        if (ronda == 1) this.gameMusic.dispose();
+        this.gameMusic.dispose();
 	}
 
 }

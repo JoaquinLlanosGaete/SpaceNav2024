@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
+import java.util.Random;
+
 
 public class Ball2 {
     private boolean isPaused;
@@ -131,12 +133,7 @@ public class Ball2 {
         setySpeed(vy); // Restaurar la velocidad en y desde vy
         setXSpeed(vx); // Restaurar la velocidad en x desde vx
     }
-
-    public int getVx() {
-        return vx;
-    }
-
-    public int getVy() {
-        return vy;
+    public void setScale(float scale) {
+        spr.setScale(scale);
     }
 }

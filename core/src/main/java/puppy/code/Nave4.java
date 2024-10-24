@@ -7,12 +7,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
-
+import com.badlogic.gdx.math.Vector3;
 
 
 public class Nave4 {
 
 	private boolean destruida = false;
+    private boolean isPause = false;
     private int vidas = 3;
     private float xVel = 0;
     private float vx = 0;
@@ -24,7 +25,7 @@ public class Nave4 {
     private Sound soundBala;
     private Texture txBala;
     private boolean herido = false;
-    private int tiempoHeridoMax=50;
+    private int tiempoHeridoMax=0;
     private int tiempoHerido;
 
     public Nave4(int x, int y, Texture tx, Sound soundChoque, Texture txBala, Sound soundBala) {
@@ -34,7 +35,8 @@ public class Nave4 {
     	spr = new Sprite(tx);
         spr.setRotation(rotacion);
     	spr.setPosition(x, y);
-    	spr.setOriginCenter();
+        spr.setOrigin(spr.getWidth() / 2, spr.getHeight() / 2);
+
     	spr.setBounds(x, y, 45, 45);
 
     }
@@ -42,14 +44,29 @@ public class Nave4 {
         float x =  spr.getX();
         float y =  spr.getY();
         if (!herido) {
-	        // que se mueva con teclado
-	        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) xVel--;
-	        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) xVel++;
-        	if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) yVel--;
-	        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) yVel++;
+            // Obtener la posición del ratón en coordenadas de pantalla
+            float mouseX = Gdx.input.getX();
+            float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
 
-	        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) spr.setRotation(++rotacion);
-	        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) spr.setRotation(--rotacion);
+            float naveCenterX = spr.getX() + spr.getWidth() / 2;
+            float naveCenterY = spr.getY() + spr.getHeight() / 2;
+            float dx = mouseX - naveCenterX;
+            float dy = mouseY - naveCenterY;
+
+            float angle = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees;
+            while (angle < 0) angle += 360;
+            while (angle >= 360) angle -= 360;
+
+            spr.setRotation(angle - 90);
+
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) && !isPause) xVel--;
+	        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) && !isPause) xVel++;
+        	if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) && !isPause) yVel--;
+	        if (Gdx.input.isKeyJustPressed(Input.Keys.UP) && !isPause) yVel++;
+
+	        //if (Gdx.input.isKeyPressed(Input.Keys.LEFT) && !isPause) spr.setRotation(++rotacion);
+	        //if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) && !isPause) spr.setRotation(--rotacion);
 
 	       /* if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
 	        	xVel -= (float) Math.sin(Math.toRadians(rotacion));
@@ -79,13 +96,13 @@ public class Nave4 {
  		   if (tiempoHerido<=0) herido = false;
  		 }
         // disparo
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+        if (Gdx.input.justTouched() && !isPause) {
             // Posición inicial de la bala (centro del sprite principal)
             float balaX = spr.getX();
             float balaY = spr.getY();
 
             // Crear la bala con la dirección basada en la rotación del sprite principal
-            Bullet bala = new Bullet(balaX, balaY, 600, txBala);  // 200 es la velocidad de la bala
+            Bullet bala = new Bullet(balaX, balaY, 400, txBala);  // 200 es la velocidad de la bala
 
             // Establecer la rotación de la bala según la del sprite principal
             bala.getSprite().setRotation(spr.getRotation());
@@ -141,10 +158,14 @@ public class Nave4 {
 	public void setVidas(int vidas2) {vidas = vidas2;}
 
     public void pause(){
+        isPause = true;
         Gdx.input.setInputProcessor(null);
         this.vy = this.yVel;
         this.vx = this.xVel;
         this.xVel = 0;
         this.yVel = 0;
+    }
+    public void resume(){
+        isPause = false;
     }
 }
