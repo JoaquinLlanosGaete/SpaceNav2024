@@ -67,19 +67,19 @@ public class PantallaJuego implements Screen {
         //crear asteroides
         Random r = new Random();
 	    for (int i = 0; i < cantAsteroides; i++) {
-	        Ball2 bb = new Ball2( r.nextInt(Gdx.graphics.getWidth()-320),r.nextInt(Gdx.graphics.getHeight()-240),
-	  	            20+r.nextInt(10), velXAsteroides+r.nextInt(4), velYAsteroides+r.nextInt(4),
+	        Ball2 bb = new Ball2(r.nextInt(Gdx.graphics.getWidth()-320),r.nextInt(Gdx.graphics.getHeight()-240),
+	  	            r.nextInt(30)+20, velXAsteroides+r.nextInt(4), velYAsteroides+r.nextInt(4),
 	  	            new Texture(Gdx.files.internal("aGreyMedium4.png")));
-           // bb.setScale(r.nextInt(1));
-	  	    balls1.add(bb);
-	  	    balls2.add(bb);
+            balls1.add(bb);
+            balls2.add(bb);
+
 	  	}
 	}
 	public void dibujaEncabezado() {
 		CharSequence str = "Vidas: "+nave.getVidas()+" Ronda: "+ronda;
 		game.getFont().draw(batch, str, 10, 30);
 		game.getFont().draw(batch, "Score:"+this.score, Gdx.graphics.getWidth()-150, 30);
-		game.getFont().draw(batch, "HighScore:"+game.getHighScore(), (float) Gdx.graphics.getWidth() /2-190, 30);
+		game.getFont().draw(batch, "HighScore:"+game.getHighScore()+" Asteroides:"+balls1.size(), (float) Gdx.graphics.getWidth() /2-190, 30);
 	}
 	@Override
 	public void render(float delta) {
@@ -169,7 +169,6 @@ public class PantallaJuego implements Screen {
 					velXAsteroides+1, velYAsteroides+1, cantAsteroides+1);
 			ss.resize(1200, 800);
             roundWin.play();
-			game.setScreen(ss);
 			dispose();
 		  }
 

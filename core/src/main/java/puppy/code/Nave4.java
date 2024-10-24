@@ -96,7 +96,7 @@ public class Nave4 {
  		   if (tiempoHerido<=0) herido = false;
  		 }
         // disparo
-        if (Gdx.input.justTouched() && !isPause) {
+        if (Gdx.input.isTouched() && !isPause) {
             // Posición inicial de la bala (centro del sprite principal)
             float balaX = spr.getX();
             float balaY = spr.getY();

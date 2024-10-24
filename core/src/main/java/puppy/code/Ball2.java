@@ -42,7 +42,12 @@ public class Ball2 {
         this.vx = xSpeed;
         this.vy = ySpeed;
     }
-
+    public int getX(){
+        return this.x;
+    }
+    public int getY(){
+        return this.y;
+    }
     public void update() {
         x += getXSpeed();
         y += getySpeed();
