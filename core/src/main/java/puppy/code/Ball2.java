@@ -42,12 +42,6 @@ public class Ball2 {
         this.vx = xSpeed;
         this.vy = ySpeed;
     }
-    public int getX(){
-        return this.x;
-    }
-    public int getY(){
-        return this.y;
-    }
     public void update() {
         x += getXSpeed();
         y += getySpeed();
@@ -137,8 +131,5 @@ public class Ball2 {
         this.isPaused = false;
         setySpeed(vy); // Restaurar la velocidad en y desde vy
         setXSpeed(vx); // Restaurar la velocidad en x desde vx
-    }
-    public void setScale(float scale) {
-        spr.setScale(scale);
     }
 }

@@ -19,7 +19,6 @@ public class SpaceNavigation extends Game {
 		highScore = 0;
 		batch = new SpriteBatch();
 		font = new BitmapFont(Gdx.files.internal("font.fnt")); // usa Arial font x defecto
-		font.getData().setScale(2f);
 		Screen ss = new PantallaMenu(this);
 		this.setScreen(ss);
 	}

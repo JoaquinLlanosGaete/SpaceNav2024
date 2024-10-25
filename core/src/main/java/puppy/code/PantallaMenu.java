@@ -17,13 +17,12 @@ public class PantallaMenu implements Screen {
 		this.game = game;
 
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 1200, 800);
+		camera.setToOrtho(false);
 	}
 
 	@Override
 	public void render(float delta) {
 		ScreenUtils.clear(0, 0, 0.2f, 1);
-
 		camera.update();
 		game.getBatch().setProjectionMatrix(camera.combined);
         BitmapFont titulo = game.getFont(), descripcion = game.getFont();
@@ -37,8 +36,8 @@ public class PantallaMenu implements Screen {
 
 		if (Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) {
 			Screen ss = new PantallaJuego(game,1,5,0,0,0,3);
-			ss.resize(1200, 800);
 			game.setScreen(ss);
+            System.out.println(Gdx.graphics.getWidth()+", "+Gdx.graphics.getHeight());
 			dispose();
 		}
 	}
