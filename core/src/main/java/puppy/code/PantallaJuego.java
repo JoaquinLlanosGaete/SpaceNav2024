@@ -22,6 +22,7 @@ public class PantallaJuego implements Screen {
 	private SpaceNavigation game;
 	public OrthographicCamera camera;
 	private SpriteBatch batch;
+    private Texture fondo;
 	private Sound explosionSound;
     private Music roundWin;
 	private Music gameMusic = Gdx.audio.newMusic(Gdx.files.internal("piano-loops.wav"));;
@@ -30,11 +31,6 @@ public class PantallaJuego implements Screen {
 	private int velXAsteroides;
 	private int velYAsteroides;
 	private int cantAsteroides;
-
-    private static final float FRAME_TIME = 1;
-    private float elapsed_time;
-    private Animation<TextureRegion> run;
-    private SpriteBatch batch2;
 
 	private Nave4 nave;
 	private  ArrayList<Ball2> balls1 = new ArrayList<>();
@@ -50,10 +46,7 @@ public class PantallaJuego implements Screen {
 		this.velXAsteroides = velXAsteroides;
 		this.velYAsteroides = velYAsteroides;
 		this.cantAsteroides = cantAsteroides;
-
-        TextureAtlas charset = new TextureAtlas(Gdx.files.internal("run.atlas"));
-        run = new Animation<>(FRAME_TIME, charset.findRegions("run"));
-        batch2 = new SpriteBatch(1000);
+        fondo = new Texture(Gdx.files.internal("fondoJuego.jpeg"));
 		batch = game.getBatch();
 		//inicializar assets; musica de fondo y efectos de sonido
         roundWin = Gdx.audio.newMusic(Gdx.files.internal("roundwin.mp3"));
@@ -95,6 +88,7 @@ public class PantallaJuego implements Screen {
 	public void render(float delta) {
 		  Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
           batch.begin();
+          game.getBatch().draw(fondo,0,0,Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
 		  dibujaEncabezado();
 	      if (!nave.estaHerido() && gameMusic.isPlaying()) {
 		      // colisiones entre balas y asteroides y su destruccion
@@ -113,7 +107,7 @@ public class PantallaJuego implements Screen {
                     if (b.isDestroyed()||b.getSprite().getX()>Gdx.graphics.getWidth() || b.getSprite().getX()<0 || b.getSprite().getY()>Gdx.graphics.getHeight() || b.getSprite().getY()<0) {
                         balas.remove(b);
                         explosionSound.play();
-                        animacion(delta,b);
+                        b.animacion(delta,b);
                         i--;
                     }
 		      }
@@ -172,10 +166,10 @@ public class PantallaJuego implements Screen {
   		  }
 	      batch.end();
 	      //nivel completado
-	      if (balls1.isEmpty()) {
+	      if (balls1.isEmpty() && !nave.estaDestruido()) {
             dispose();
             roundWin.setOnCompletionListener(music -> {
-                Screen ss = new PantallaJuego(game,ronda+1, nave.getVidas(), score,
+                Screen ss = new PantallaJuego(game,ronda+1, nave.getVidas()+1, score,
                     velXAsteroides+1, velYAsteroides+1, cantAsteroides+1);
                 game.setScreen((ss));
             });
@@ -192,23 +186,6 @@ public class PantallaJuego implements Screen {
     public void show() {
     }
 
-    public void animacion(float delta, Bullet b) {
-        // Reinicia el tiempo de estado solo si la animación acaba de comenzar
-        if (elapsed_time == 0) {
-            elapsed_time += delta;
-        }
-
-        TextureRegion currentFrame = run.getKeyFrame(elapsed_time, true); // No repetimos la animación
-        batch2.begin();
-        batch2.draw(currentFrame, b.getSprite().getX(), b.getSprite().getY());
-        batch2.end();
-
-        // Detén la animación si ya se completó
-        if (run.isAnimationFinished(elapsed_time)) {
-            elapsed_time = 0; // Resetea el tiempo para la próxima explosión
-            // Realiza cualquier acción que necesites al finalizar la animación
-        }
-    }
 
 	@Override
 	public void resize(int width, int height) {
