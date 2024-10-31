@@ -3,7 +3,10 @@ package puppy.code;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -13,13 +16,19 @@ public class PantallaMenu implements Screen {
 
 	private SpaceNavigation game;
 	private OrthographicCamera camera;
+    private Texture fondo;
+    private Music musicaFondo;
+    private BitmapFont font;
 
 	public PantallaMenu(SpaceNavigation game) {
 		this.game = game;
-
+        fondo = new Texture(Gdx.files.internal("fondomenu.jpg"));
+        musicaFondo = Gdx.audio.newMusic(Gdx.files.internal("musicaFondo.mp3"));
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false);
-	}
+        musicaFondo.setLooping(true);
+        font = game.getFont();
+    }
 
 	@Override
 	public void render(float delta) {
@@ -27,6 +36,8 @@ public class PantallaMenu implements Screen {
 		camera.update();
 		game.getBatch().setProjectionMatrix(camera.combined);
         game.getBatch().begin();
+        musicaFondo.play();
+        game.getBatch().draw(fondo, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         // Configura las fuentes para el título y la descripción
         BitmapFont titulo = game.getFont();
         BitmapFont descripcion = game.getFont();
@@ -39,7 +50,10 @@ public class PantallaMenu implements Screen {
         titulo.getData().setScale(1f);
         GlyphLayout layoutTitulo = new GlyphLayout(titulo, textoTitulo);
         float xTitulo = (Gdx.graphics.getWidth() - layoutTitulo.width) / 2;
+        titulo.setColor(Color.BLACK);
         titulo.draw(game.getBatch(), textoTitulo, xTitulo, 400);
+        titulo.setColor(Color.WHITE);
+        titulo.draw(game.getBatch(), textoTitulo, xTitulo+2, 402);
 
         descripcion.getData().setScale(0.5f);
         GlyphLayout layoutDescripcion = new GlyphLayout(descripcion, textoDescripcion);
@@ -91,6 +105,8 @@ public class PantallaMenu implements Screen {
 	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
+        musicaFondo.dispose();
+        fondo.dispose();
 
 	}
 
