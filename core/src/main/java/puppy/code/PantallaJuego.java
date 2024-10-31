@@ -11,7 +11,10 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 
 public class PantallaJuego implements Screen {
@@ -20,13 +23,18 @@ public class PantallaJuego implements Screen {
 	public OrthographicCamera camera;
 	private SpriteBatch batch;
 	private Sound explosionSound;
-    private Sound roundWin;
+    private Music roundWin;
 	private Music gameMusic = Gdx.audio.newMusic(Gdx.files.internal("piano-loops.wav"));;
 	private int score;
 	private int ronda;
 	private int velXAsteroides;
 	private int velYAsteroides;
 	private int cantAsteroides;
+
+    private static final float FRAME_TIME = 1;
+    private float elapsed_time;
+    private Animation<TextureRegion> run;
+    private SpriteBatch batch2;
 
 	private Nave4 nave;
 	private  ArrayList<Ball2> balls1 = new ArrayList<>();
@@ -43,12 +51,15 @@ public class PantallaJuego implements Screen {
 		this.velYAsteroides = velYAsteroides;
 		this.cantAsteroides = cantAsteroides;
 
+        TextureAtlas charset = new TextureAtlas(Gdx.files.internal("run.atlas"));
+        run = new Animation<>(FRAME_TIME, charset.findRegions("run"));
+        batch2 = new SpriteBatch(1000);
 		batch = game.getBatch();
 		//inicializar assets; musica de fondo y efectos de sonido
-        roundWin = Gdx.audio.newSound(Gdx.files.internal("roundwin.mp3"));
-        roundWin.setVolume(1,0.5f);
+        roundWin = Gdx.audio.newMusic(Gdx.files.internal("roundwin.mp3"));
+        roundWin.setVolume(0.5f);
 		explosionSound = Gdx.audio.newSound(Gdx.files.internal("explosion.ogg"));
-		explosionSound.setVolume(1,0.5f);
+		explosionSound.setVolume(1,1);
         gameMusic.setLooping(true);
         gameMusic.setVolume(0.5f);
         if (!gameMusic.isPlaying()){
@@ -66,7 +77,7 @@ public class PantallaJuego implements Screen {
         Random r = new Random();
 	    for (int i = 0; i < cantAsteroides; i++) {
 	        Ball2 bb = new Ball2(50+r.nextInt(Gdx.graphics.getWidth()),50+r.nextInt(Gdx.graphics.getHeight()),
-	  	            r.nextInt(40)+40, velXAsteroides+r.nextInt(4), velYAsteroides+r.nextInt(4),
+	  	            r.nextInt(40)+10, velXAsteroides+r.nextInt(4), velYAsteroides+r.nextInt(4),
 	  	            new Texture(Gdx.files.internal("aGreyMedium4.png")));
             balls1.add(bb);
             balls2.add(bb);
@@ -85,7 +96,7 @@ public class PantallaJuego implements Screen {
 		  Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
           batch.begin();
 		  dibujaEncabezado();
-	      if (!nave.estaHerido()) {
+	      if (!nave.estaHerido() && gameMusic.isPlaying()) {
 		      // colisiones entre balas y asteroides y su destruccion
 	    	  for (int i = 0; i < balas.size(); i++) {
 		            Bullet b = balas.get(i);
@@ -102,6 +113,7 @@ public class PantallaJuego implements Screen {
                     if (b.isDestroyed()||b.getSprite().getX()>Gdx.graphics.getWidth() || b.getSprite().getX()<0 || b.getSprite().getY()>Gdx.graphics.getHeight() || b.getSprite().getY()<0) {
                         balas.remove(b);
                         explosionSound.play();
+                        animacion(delta,b);
                         i--;
                     }
 		      }
@@ -128,15 +140,16 @@ public class PantallaJuego implements Screen {
 	      nave.draw(batch, this);
 	      //dibujar asteroides y manejar colision con nave
 	      for (int i = 0; i < balls1.size(); i++) {
-	    	    Ball2 b=balls1.get(i);
-	    	    b.draw(batch);
-		          //perdió vida o game over
-	              /*if (nave.checkCollision(b)) {
-		            //asteroide se destruye con el choque
-	            	 balls1.remove(i);
-	            	 balls2.remove(i);
-	            	 i--;*/
+              Ball2 b = balls1.get(i);
+              b.draw(batch);
+              //perdió vida o game over
+              if (nave.checkCollision(b)) {
+                  //asteroide se destruye con el choque
+                  balls1.remove(i);
+                  balls2.remove(i);
+                  i--;
               }
+          }
 
           if(Gdx.input.isKeyJustPressed(46)){
             Screen ss = new PantallaMenu(game);
@@ -144,7 +157,6 @@ public class PantallaJuego implements Screen {
             dispose();
           }
           if(Gdx.input.isKeyJustPressed(44)){
-              Gdx.input.setInputProcessor(null);
               pause();
           }
           if(Gdx.input.isKeyJustPressed(43)){
@@ -161,24 +173,42 @@ public class PantallaJuego implements Screen {
 	      batch.end();
 	      //nivel completado
 	      if (balls1.isEmpty()) {
-			Screen ss = new PantallaJuego(game,ronda+1, nave.getVidas(), score,
-					velXAsteroides+1, velYAsteroides+1, cantAsteroides+1);
-            game.setScreen((ss));
+            dispose();
+            roundWin.setOnCompletionListener(music -> {
+                Screen ss = new PantallaJuego(game,ronda+1, nave.getVidas(), score,
+                    velXAsteroides+1, velYAsteroides+1, cantAsteroides+1);
+                game.setScreen((ss));
+            });
             roundWin.play();
-			dispose();
 		  }
 
 	}
 
-    public boolean agregarBala(Bullet bb) {
-    	return balas.add(bb);
+    public void agregarBala(Bullet bb) {
+        balas.add(bb);
     }
 
 	@Override
-	public void show() {
-		// TODO Auto-generated method stub
-		gameMusic.play();
-	}
+    public void show() {
+    }
+
+    public void animacion(float delta, Bullet b) {
+        // Reinicia el tiempo de estado solo si la animación acaba de comenzar
+        if (elapsed_time == 0) {
+            elapsed_time += delta;
+        }
+
+        TextureRegion currentFrame = run.getKeyFrame(elapsed_time, true); // No repetimos la animación
+        batch2.begin();
+        batch2.draw(currentFrame, b.getSprite().getX(), b.getSprite().getY());
+        batch2.end();
+
+        // Detén la animación si ya se completó
+        if (run.isAnimationFinished(elapsed_time)) {
+            elapsed_time = 0; // Resetea el tiempo para la próxima explosión
+            // Realiza cualquier acción que necesites al finalizar la animación
+        }
+    }
 
 	@Override
 	public void resize(int width, int height) {
@@ -194,7 +224,9 @@ public class PantallaJuego implements Screen {
         }
 
         // Pausar el procesamiento de entradas
+        // Para desactivar la detección de entradas
         Gdx.input.setInputProcessor(null);
+
 
         // Detener el movimiento de balas y bolas
         for (Bullet bala : balas) {

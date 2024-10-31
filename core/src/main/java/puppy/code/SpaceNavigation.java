@@ -27,9 +27,10 @@ public class SpaceNavigation extends Game {
 		super.render(); // important!
 	}
 
-	public void dispose() {
+	public void disposes() {
 		batch.dispose();
 		font.dispose();
+        Gdx.app.exit();
 	}
 
 	public SpriteBatch getBatch() {

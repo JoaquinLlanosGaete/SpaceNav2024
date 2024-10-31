@@ -24,6 +24,7 @@ public class Ball2 {
 
     public Ball2(int x, int y, int size, int xSpeed, int ySpeed, Texture tx) {
         spr = new Sprite(tx);
+        spr.scale(2);
         this.x = x;
 
         // Validar que el borde de la esfera no quede fuera
