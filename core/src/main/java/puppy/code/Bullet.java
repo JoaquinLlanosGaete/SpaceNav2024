@@ -11,19 +11,12 @@ public class Bullet{
     private float speed;  // Velocidad de la bala
     private boolean destroyed = false;
     private Sprite spr;
-    private static final float FRAME_TIME = 1;
-    private float elapsed_time;
-    private Animation<TextureRegion> run;
-    private SpriteBatch batch2;
 
     public Bullet(float x, float y, float speed, Texture tx) {
         spr = new Sprite(tx);
         spr.setPosition(x, y);
         this.speed = speed;  // Velocidad
         this.isPaused = false;
-        TextureAtlas charset = new TextureAtlas(Gdx.files.internal("run.atlas"));
-        run = new Animation<>(FRAME_TIME, charset.findRegions("run"));
-        batch2 = new SpriteBatch(1000);
     }
 
     // Método para actualizar la posición del bullet según la rotación
@@ -61,28 +54,13 @@ public class Bullet{
         this.isPaused = false;
         // Lógica para reanudar el movimiento de la bala
     }
-    public void animacion(float delta, Bullet b) {
-        // Reinicia el tiempo de estado solo si la animación acaba de comenzar
-        if (elapsed_time == 0) {
-            elapsed_time += delta;
-        }
-
-        TextureRegion currentFrame = run.getKeyFrame(elapsed_time, true); // No repetimos la animación
-        batch2.begin();
-        batch2.draw(currentFrame, b.getSprite().getX(), b.getSprite().getY());
-        batch2.end();
-
-        // Detén la animación si ya se completó
-        if (run.isAnimationFinished(elapsed_time)) {
-            elapsed_time = 0; // Resetea el tiempo para la próxima explosión
-            // Realiza cualquier acción que necesites al finalizar la animación
-        }
-    }
 
     public Sprite getSprite() {
         return spr;
     }
 
-    public void dispose() {// Liberamos la textura del sprite sheet
+    public void dispose() {
+        // Liberamos la textura del sprite sheet
+        this.destroyed = true;
     }
 }

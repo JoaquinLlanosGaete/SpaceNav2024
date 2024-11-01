@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 
@@ -17,8 +18,9 @@ public class PantallaMenu implements Screen {
 	private SpaceNavigation game;
 	private OrthographicCamera camera;
     private Texture fondo;
+    private SpriteBatch batch;
     private Music musicaFondo;
-    private BitmapFont font;
+    private float cont;
 
 	public PantallaMenu(SpaceNavigation game) {
 		this.game = game;
@@ -27,16 +29,18 @@ public class PantallaMenu implements Screen {
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false);
         musicaFondo.setLooping(true);
-        font = game.getFont();
+        batch = new SpriteBatch();
     }
 
 	@Override
 	public void render(float delta) {
-		ScreenUtils.clear(0, 0, 0.2f, 1);
 		camera.update();
 		game.getBatch().setProjectionMatrix(camera.combined);
         game.getBatch().begin();
+        batch.begin();
         musicaFondo.play();
+        batch.setColor(0,0,0,1-cont/4f);
+        batch.draw(fondo, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         game.getBatch().draw(fondo, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         // Configura las fuentes para el título y la descripción
         BitmapFont titulo = game.getFont();
@@ -53,22 +57,25 @@ public class PantallaMenu implements Screen {
         titulo.setColor(Color.BLACK);
         titulo.draw(game.getBatch(), textoTitulo, xTitulo, 400);
         titulo.setColor(Color.WHITE);
-        titulo.draw(game.getBatch(), textoTitulo, xTitulo+2, 402);
+        titulo.draw(game.getBatch(), textoTitulo, xTitulo-4, 404);
 
         descripcion.getData().setScale(0.5f);
         GlyphLayout layoutDescripcion = new GlyphLayout(descripcion, textoDescripcion);
         float xDescripcion = (Gdx.graphics.getWidth() - layoutDescripcion.width) / 2;
+        descripcion.setColor(Color.BLACK);
         descripcion.draw(game.getBatch(), textoDescripcion, xDescripcion, 300);
-
+        descripcion.setColor(Color.WHITE);
+        descripcion.draw(game.getBatch(), textoDescripcion, xDescripcion+2, 300+2);
+        cont += 1/60f;
+        batch.end();
 		game.getBatch().end();
-
-		if (Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) {
-			Screen ss = new PantallaJuego(game,1,1,0,0,0,3);
-			game.setScreen(ss);
+        if ((Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) &&  cont > 4) {
+            Screen ss = new PantallaJuego(game,1,1,0,0,0,3);
+            game.setScreen(ss);
             System.out.println(Gdx.graphics.getWidth()+", "+Gdx.graphics.getHeight());
-			dispose();
-		}
-	}
+            dispose();
+        }
+    }
 
 
 	@Override
