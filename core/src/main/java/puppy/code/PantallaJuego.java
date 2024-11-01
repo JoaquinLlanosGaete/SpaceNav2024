@@ -11,15 +11,13 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 
 public class PantallaJuego implements Screen {
 
 	private SpaceNavigation game;
+    private ArrayList<Animacion> explosiones = new ArrayList<>();
 	public OrthographicCamera camera;
 	private SpriteBatch batch;
     private Texture fondo;
@@ -31,7 +29,6 @@ public class PantallaJuego implements Screen {
 	private int velXAsteroides;
 	private int velYAsteroides;
 	private int cantAsteroides;
-
 	private Nave4 nave;
 	private  ArrayList<Ball2> balls1 = new ArrayList<>();
 	private  ArrayList<Ball2> balls2 = new ArrayList<>();
@@ -107,11 +104,14 @@ public class PantallaJuego implements Screen {
                     if (b.isDestroyed()||b.getSprite().getX()>Gdx.graphics.getWidth() || b.getSprite().getX()<0 || b.getSprite().getY()>Gdx.graphics.getHeight() || b.getSprite().getY()<0) {
                         balas.remove(b);
                         explosionSound.play();
-                        b.animacion(delta,b);
+                        // Iniciar la animación de explosión en la posición de la bala
+                        Animacion explosion = new Animacion(b.getSprite().getX(), b.getSprite().getY());
+                        explosiones.add(explosion);
                         i--;
                     }
 		      }
-		      //actualizar movimiento de asteroides dentro del area
+
+              //actualizar movimiento de asteroides dentro del area
 		      for (Ball2 ball : balls1) {
 		          ball.update();
 		      }
@@ -127,6 +127,18 @@ public class PantallaJuego implements Screen {
 		        }
 		      }
 	      }
+        // Actualizar y dibujar animaciones de explosión
+        for (int i = 0; i < explosiones.size(); i++) {
+            Animacion explosion = explosiones.get(i);
+            explosion.update(delta);
+            explosion.render(batch);
+
+            // Remover la explosión si ha terminado
+            if (explosion.isFinished()) {
+                explosiones.remove(i);
+                i--;
+            }
+        }
 	      //dibujar balas
 	     for (Bullet b : balas) {
 	          b.draw(batch);
@@ -166,15 +178,15 @@ public class PantallaJuego implements Screen {
   		  }
 	      batch.end();
 	      //nivel completado
-	      if (balls1.isEmpty() && !nave.estaDestruido()) {
+        if (balls1.isEmpty() && nave.getVidas() > 0) {
             dispose();
             roundWin.setOnCompletionListener(music -> {
-                Screen ss = new PantallaJuego(game,ronda+1, nave.getVidas()+1, score,
-                    velXAsteroides+1, velYAsteroides+1, cantAsteroides+1);
+                Screen ss = new PantallaJuego(game, ronda + 1, nave.getVidas() + 1, score,
+                    velXAsteroides + 1, velYAsteroides + 1, cantAsteroides + 1);
                 game.setScreen((ss));
             });
             roundWin.play();
-		  }
+        }
 
 	}
 
@@ -269,9 +281,14 @@ public class PantallaJuego implements Screen {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
 		this.explosionSound.dispose();
-        this.gameMusic.dispose();
+        this.gameMusic.pause();
+        for (Bullet b : balas) {
+            Animacion explosion = new Animacion(b.getSprite().getX(), b.getSprite().getY());
+            explosiones.add(explosion);
+        }
+        balas.removeAll(balas);
+        nave.pause();
 	}
 
 }
