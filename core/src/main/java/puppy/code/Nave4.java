@@ -2,113 +2,103 @@ package puppy.code;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector3;
 
-
-public class Nave4 {
-
-    private boolean destruida = false;
-    private boolean isPause = false;
-    private int vidas = 3;
-    private float xVel = 0;
-    private float vx = 0;
-    private float vy = 0;
-    private float yVel = 0;
-    private float rotacion = 0;
-    private Sprite spr;
+public class Nave4 extends MovableGameObject {
+    private int vidas;
+    private boolean herido;
+    private int tiempoHerido;
+    private int tiempoHeridoMax;
     private Sound sonidoHerido;
     private Sound soundBala;
     private Texture txBala;
-    private boolean herido = false;
-    private int tiempoHeridoMax = 0;
-    private int tiempoHerido;
 
     public Nave4(int x, int y, Texture tx, Sound soundChoque, Texture txBala, Sound soundBala) {
-        sonidoHerido = soundChoque;
+        super(tx, x, y, 5.0f); // velocidad base de la nave
+        this.sonidoHerido = soundChoque;
         this.soundBala = soundBala;
-        this.soundBala.setVolume(0, 0.7f);
         this.txBala = txBala;
-        spr = new Sprite(tx);
-        spr.setRotation(rotacion);
-        spr.setPosition(x, y);
-        spr.setOrigin(spr.getWidth() / 2, spr.getHeight() / 2);
+        this.vidas = 3;
 
-        spr.setBounds(x, y, 45, 45);
+        sprite.setOrigin(sprite.getWidth() / 2, sprite.getHeight() / 2);
+        sprite.setBounds(x, y, 45, 45);
+    }
 
+    @Override
+    protected void updateMovement(float deltaTime) {
+        if (!isPaused && !isDestroyed && !herido) {
+            // Actualizar posición según velocidad
+            sprite.translate(xVel, yVel);
+
+            // Actualizar rotación según posición del mouse
+            updateRotation();
+        }
+    }
+
+    private void updateRotation() {
+        float mouseX = Gdx.input.getX();
+        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+
+        float naveCenterX = sprite.getX() + sprite.getWidth() / 2;
+        float naveCenterY = sprite.getY() + sprite.getHeight() / 2;
+        float dx = mouseX - naveCenterX;
+        float dy = mouseY - naveCenterY;
+
+        float angle = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees;
+        sprite.setRotation(angle - 90);
+    }
+
+    @Override
+    protected void checkBounds() {
+        // Mantener la nave dentro de los límites de la pantalla
+        if (sprite.getX() < 0) {
+            sprite.setX(0);
+            xVel = 0;
+        }
+        if (sprite.getX() + sprite.getWidth() > Gdx.graphics.getWidth()) {
+            sprite.setX(Gdx.graphics.getWidth() - sprite.getWidth());
+            xVel = 0;
+        }
+        if (sprite.getY() < 0) {
+            sprite.setY(0);
+            yVel = 0;
+        }
+        if (sprite.getY() + sprite.getHeight() > Gdx.graphics.getHeight()) {
+            sprite.setY(Gdx.graphics.getHeight() - sprite.getHeight());
+            yVel = 0;
+        }
     }
 
     public void draw(SpriteBatch batch, PantallaJuego juego) {
-        float x = spr.getX();
-        float y = spr.getY();
-        if (!herido && !isPause) {
-            // Obtener la posición del ratón en coordenadas de pantalla
-            float mouseX = Gdx.input.getX();
-            float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+        super.draw(batch);
 
-            float naveCenterX = spr.getX() + spr.getWidth() / 2;
-            float naveCenterY = spr.getY() + spr.getHeight() / 2;
-            float dx = mouseX - naveCenterX;
-            float dy = mouseY - naveCenterY;
+        // Manejar el disparo
+        if (Gdx.input.justTouched() && !isPaused) {
+            disparar(juego);
+        }
 
-            float angle = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees;
-            while (angle < 0) angle += 360;
-            while (angle >= 360) angle -= 360;
-
-            spr.setRotation(angle - 90);
-
-
-            if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) && !isPause) xVel--;
-            if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) && !isPause) xVel++;
-            if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) && !isPause) yVel--;
-            if (Gdx.input.isKeyJustPressed(Input.Keys.UP) && !isPause) yVel++;
-
-            // que se mantenga dentro de los bordes de la ventana
-            if (x + xVel < 0 || x + xVel + spr.getWidth() > Gdx.graphics.getWidth())
-                xVel *= -1;
-            if (y + yVel < 0 || y + yVel + spr.getHeight() > Gdx.graphics.getHeight())
-                yVel *= -1;
-
-            spr.setPosition(x + xVel, y + yVel);
-
-            spr.draw(batch);
-        } else if (!isPause) {
-            spr.setX(spr.getX() + MathUtils.random(-2, 2));
-            spr.draw(batch);
-            spr.setX(x);
+        // Efecto de daño
+        if (herido) {
+            sprite.setX(sprite.getX() + MathUtils.random(-2, 2));
             tiempoHerido--;
-            if (tiempoHerido <= 0) herido = false;
-        } else {
-            spr.draw(batch);
+            if (tiempoHerido <= 0) {
+                herido = false;
+            }
         }
-        // disparo
-        if (Gdx.input.justTouched() && !isPause) {
-            // Posición inicial de la bala (centro del sprite principal)
-            float balaX = spr.getX();
-            float balaY = spr.getY();
+    }
 
-            // Crear la bala con la dirección basada en la rotación del sprite principal
-            Bullet bala = new Bullet(balaX, balaY, 400, txBala);  // 200 es la velocidad de la bala
-
-            // Establecer la rotación de la bala según la del sprite principal
-            bala.getSprite().setRotation(spr.getRotation());
-
-            // Agregar la bala al juego
-            juego.agregarBala(bala);
-            soundBala.play();
-        }
-
-
+    private void disparar(PantallaJuego juego) {
+        Bullet bala = new Bullet(sprite.getX(), sprite.getY(), 400, txBala);
+        bala.getSprite().setRotation(sprite.getRotation());
+        juego.agregarBala(bala);
+        soundBala.play();
     }
 
     public boolean checkCollision(Ball2 b) {
-        if (!herido && b.getArea().overlaps(spr.getBoundingRectangle())) {
+        if (!herido && b.getArea().overlaps(sprite.getBoundingRectangle())) {
             // rebote
             if (xVel == 0) xVel += (float) b.getXSpeed() / 2;
             if (b.getXSpeed() == 0) b.setXSpeed(b.getXSpeed() + (int) xVel / 2);
@@ -121,58 +111,34 @@ public class Nave4 {
             b.setySpeed(-b.getySpeed());
             // despegar sprites
             int cont = 0;
-            while (b.getArea().overlaps(spr.getBoundingRectangle()) && cont < xVel) {
-                spr.setX(spr.getX() + Math.signum(xVel));
+            while (b.getArea().overlaps(sprite.getBoundingRectangle()) && cont < xVel) {
+                sprite.setX(sprite.getX() + Math.signum(xVel));
             }
             //actualizar vidas y herir
             vidas--;
             herido = true;
             tiempoHerido = tiempoHeridoMax;
             sonidoHerido.play();
-            if (vidas <= 0)
-                destruida = true;
             return true;
         }
         return false;
     }
-
-    public boolean estaDestruido() {
-        return !herido && destruida;
-    }
-
-    public boolean estaHerido() {
-        return herido;
+    public void updateInput() {
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) xVel -= 0.5f;
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) xVel += 0.5f;
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) yVel += 0.5f;
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) yVel -= 0.5f;
     }
 
     public int getVidas() {
         return vidas;
     }
 
-    public boolean isDestruida() {
-        return destruida;
+    public void setVidas(int vidas) {
+        this.vidas = vidas;
     }
 
-    public int getX() {
-        return (int) spr.getX();
-    }
-
-    public int getY() {
-        return (int) spr.getY();
-    }
-
-    public void setVidas(int vidas2) {
-        vidas = vidas2;
-    }
-
-    public void pause() {
-        isPause = true;
-        this.vy = this.yVel;
-        this.vx = this.xVel;
-        this.xVel = 0;
-        this.yVel = 0;
-    }
-
-    public void resume() {
-        isPause = false;
+    public boolean estaHerido() {
+        return herido;
     }
 }

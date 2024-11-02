@@ -39,16 +39,32 @@ public class PantallaMenu implements Screen {
         game.getBatch().begin();
         batch.begin();
         musicaFondo.play();
-        batch.setColor(0,0,0,1-cont/4f);
         batch.draw(fondo, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.setColor(0,0,0,1-cont/8f);
         game.getBatch().draw(fondo, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         // Configura las fuentes para el título y la descripción
+        dibujar();
+        cont += 1/60f;
+        batch.end();
+		game.getBatch().end();
+        if ((Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) &&  cont > 4) {
+            Screen ss = new PantallaJuego(game,1,3,0,0,0,3);
+            game.setScreen(ss);
+            System.out.println(Gdx.graphics.getWidth()+", "+Gdx.graphics.getHeight());
+            dispose();
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            game.disposes();
+        }
+    }
+
+    public void dibujar() {
         BitmapFont titulo = game.getFont();
         BitmapFont descripcion = game.getFont();
 
         // Define los textos
         String textoTitulo = "¡Bienvenido a Space Navigation!";
-        String textoDescripcion = "Pincha en cualquier lado o presiona cualquier tecla para comenzar ...";
+        String textoDescripcion = "Presiona cualquier tecla para empezar, usa ESCAPE para salir.";
 
         // Calcula las posiciones centradas
         titulo.getData().setScale(1f);
@@ -66,18 +82,7 @@ public class PantallaMenu implements Screen {
         descripcion.draw(game.getBatch(), textoDescripcion, xDescripcion, 300);
         descripcion.setColor(Color.WHITE);
         descripcion.draw(game.getBatch(), textoDescripcion, xDescripcion+2, 300+2);
-        cont += 1/60f;
-        batch.end();
-		game.getBatch().end();
-        if ((Gdx.input.isTouched() || Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) &&  cont > 4) {
-            Screen ss = new PantallaJuego(game,1,1,0,0,0,3);
-            game.setScreen(ss);
-            System.out.println(Gdx.graphics.getWidth()+", "+Gdx.graphics.getHeight());
-            dispose();
-        }
     }
-
-
 	@Override
 	public void show() {
 		// TODO Auto-generated method stub
