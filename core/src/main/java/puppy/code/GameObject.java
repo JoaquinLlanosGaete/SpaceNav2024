@@ -40,11 +40,6 @@ public abstract class GameObject implements Drawable, Collidable, Pausable, Dest
     }
 
     @Override
-    public boolean isPaused() {
-        return isPaused;
-    }
-
-    @Override
     public boolean isDestroyed() {
         return isDestroyed;
     }

@@ -13,7 +13,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 
-public class PantallaJuego implements Screen {
+public class PantallaJuego implements Screen, Pausable {
 
     private SpaceNavigation game;
     private ArrayList<Animacion> explosiones = new ArrayList<>();
@@ -30,8 +30,6 @@ public class PantallaJuego implements Screen {
     private int velYAsteroides;
     private int cantAsteroides;
     private Nave4 nave;
-    private ArrayList<Ball2> balls1 = new ArrayList<>();
-    private ArrayList<Ball2> balls2 = new ArrayList<>();
 
 
     public PantallaJuego(SpaceNavigation game, int ronda, int vidas, int score, int velXAsteroides, int velYAsteroides, int cantAsteroides) {
@@ -232,6 +230,7 @@ public class PantallaJuego implements Screen {
 
         nave.resume();
     }
+
 
 
     @Override
