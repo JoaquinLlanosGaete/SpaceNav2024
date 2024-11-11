@@ -130,3 +130,18 @@ startScripts.classpath = project.tasks.jar.outputs.files
 if(enableGraalNative == 'true') {
   apply from: file("nativeimage.gradle")
 }
+task fatJar(type: Jar) {
+  archiveBaseName = 'SpaceNav2024'
+  archiveClassifier = 'all'
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+  from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+  from sourceSets.main.output
+
+  // Incluye la carpeta assets en el .jar
+  from(file("assets")) {
+    into("assets")  // Coloca los archivos en el directorio assets dentro del .jar
+  }
+}
+
+
